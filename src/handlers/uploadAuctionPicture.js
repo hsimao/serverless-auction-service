@@ -7,8 +7,14 @@ import { setAuctionPictureUrl } from "../lib/setAuctionPictureUrl";
 
 export async function uploadAuctionPicture(event) {
   const { id } = event.pathParameters;
-
+  const { email } = event.requestContext.authorizer;
   const auction = await getAuctionById(id);
+
+  // 驗證當前請求更新者是否是 aucton 創建者
+  if (auction.seller !== email) {
+    throw new createError.Forbidden("You are not the seller of this auction!");
+  }
+
   const base64 = event.body.replace(/^data:image\/\w+;base64,/, "");
   const buffer = Buffer.from(base64, "base64");
 
